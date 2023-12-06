@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Loader de la App</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+        body { margin: 0; }
+    </style>
+</head>
+<body>
+    
+	<script type="importmap">
+		{
+			"imports": {
+    			"three": "https://threejs.org/build/three.module.js",
+    			"three/addons/": "https://threejs.org/examples/jsm/",
+    			"OrbitControls": "https://unpkg.com/three@0.138.0/examples/jsm/controls/OrbitControls.js",
+    			"OBJLoader": "https://threejs.org/examples/jsm/loaders/OBJLoader.js"
+			}
+		}
+	</script>
+
+
+    <script type="module">
+    
+       
+        import * as THREE from 'three';
+        import { OrbitControls } from 'OrbitControls';
+        import { OBJLoader } from 'OBJLoader';
+        import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+        import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+        	
+        let camera, scene, renderer, controls, object;
+
+        let font = undefined,
+            fontName = 'optimer';
+        
+        init();
+        animate();
+
+        function init() {
+            // Configuración de la escena y la cámara
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xffffff); // Fondo blanco
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 3;
+
+            // Configuración del renderer
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            loadFont();
+            
+            // Configuración del loader OBJ
+            const loader = new OBJLoader();
+            loader.load(
+                'perro2.obj',
+                function (loadedObject) {
+                     object = loadedObject;
+                     
+                     object.scale.set(0.03, 0.03, 0.03);
+                     object.rotation.x = -20;
+                      
+                     console.log(object); // Imprime en la consola la estructura del objeto cargado
+        
+                    scene.add(object);
+                
+                    const textGeometry  = new TextGeometry( "Adog me!", {
+    					font: font,
+        				 size: 0.3,
+                         height: 0.01,
+                         curveSegments: 12,
+                         bevelEnabled: false
+    				} );
+    				
+    				const textGeometryCargando  = new TextGeometry( "Cargando...", {
+    					font: font,
+        				 size: 0.15,
+                         height: 0.01,
+                         curveSegments: 12,
+                         bevelEnabled: false
+    				} );
+        				
+                  
+                    const textMaterial = new THREE.MeshBasicMaterial({ color: 0xFFD51B0E });
+                    const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+                    textMesh.position.set(-1, -1, -1); // Posición relativa al objeto
+                    scene.add(textMesh);
+                    
+                     const textMesh2 = new THREE.Mesh(textGeometryCargando, textMaterial);
+                    textMesh2.position.set(-.65, -1.5, -1.5); // Posición relativa al objeto
+                    scene.add(textMesh2);
+                },
+                function (xhr) {
+                    console.log((xhr.loaded / xhr.total * 100) + '% cargado');
+                },
+                function (error) {
+                    console.error('Error al cargar el modelo', error);
+                }
+            );
+
+            // Configuración de las luces, controles, etc.
+            // ...
+
+            // Configuración de los controles
+            
+            
+            controls = new OrbitControls(camera, renderer.domElement);
+
+            // Event listener para ajustar el tamaño del renderer cuando cambia la ventana
+            window.addEventListener('resize', onWindowResize);
+        }
+
+    	function loadFont() {
+
+			const loader = new FontLoader();
+			loader.load( 'https://threejs.org/examples/fonts/' + fontName + '_bold.typeface.json', function ( response ) {
+
+				font = response;
+
+				refreshText();
+
+			} );
+
+		}
+		
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Rotación aleatoria en el eje Y
+            if (object) {
+                object.rotation.z += Math.random() * 0.2;
+            }
+
+            // Actualización de los controles y renderizado de la escena
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            // Ajusta el tamaño del renderer cuando cambia la ventana
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+    </script>
+</body>
+</html>
